@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://todomvc.com/examples/vanilla-es6/node_modules/todomvc-common/base.css">
+    <link rel="stylesheet" href="http://todomvc.com/examples/vanilla-es6/node_modules/todomvc-app-css/index.css">
+    <title>Lecture 02</title>
+</head>
+<body>
+    <section class="todoapp">
+        <header class="header">
+            <h1>todos</h1>
+            <input class="new-todo" placeholder="What needs to be done?" autofocus>
+        </header>
+        <section class="main">
+            <input class="toggle-all" type="checkbox">
+            <label for="toggle-all">Mark all as complete</label>
+            <ul class="todo-list"></ul>
+            <footer class="footer">
+                <span class="todo-count"></span>
+                <div class="filters">
+                    <a id="filter-all" href="#/" class="selected">All</a>
+                    <a id="filter-active" href="#/active">Active</a>
+                    <a id="filter-completed" href="#/completed">Completed</a>
+                </div>
+                <button class="clear-completed">Clear completed</button>
+            </footer>
+        </section>
+    </section>
+
+    <footer class="info">
+        <p>Double-click to edit a todo</p>
+        <p>Created by <a href="http://twitter.com/oscargodson">Oscar Godson</a></p>
+        <p>Refactored by <a href="https://github.com/cburgmer">Christoph Burgmer</a></p>
+        <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+    </footer>
+
+    <script>
+        //
+        // Predefined state
+        //
+//
+//HOMEWORK ADD TODOS 
+//
+        var state = {
+            todos: [
+                { text: 'Hi', completed: true  },
+                { text: 'Hello', completed: false },
+                { text: 'Hi there!', completed: true },
+            ],
+            filter: 'all'
+        };
+
+        var my_state = function(initialTodos, initialFilter){
+            this._todos = initialTodos;
+            this._filter = initialFilter;
+            console.log(this._todos, this._filter)
+        }
+
+        // var state1 = new State(state.todos, state.filter);
+
+        my_state.prototype.addTodo = function(todo){
+            this._todos.push(todo);
+        }
+
+        my_state.prototype.setFilter = function(filter){
+            this._filter = filter;
+
+        }
+
+        my_state.prototype.getTodos = function(){
+            // debugger;
+            // var bindedCallback = function
+            var bindedCallback = function(todo){
+                if (this._filter == 'all'){
+                    return true; 
+                } else if (this._filter === 'completed'){
+                    return todo.completed === true;
+                }else if ( this._filter === 'active'){
+                    return todo.completed === false;
+                }
+            }.bind(this);
+            var filteredTodos = this._todos.filter(bindedCallback);
+            
+            return filteredTodos;
+        }
+
+        var state1 = new my_state(state.todos, state.filter);
+
+        // my_state.addTodo();
+
+
+        //
+        //
+        // Prepare todos html
+        //
+
+        /*
+            Template example:
+            <li>
+                <input class="toggle" type="checkbox" checked>
+                <label>aaa</label>
+                <button class="destroy"></button>
+            </li>
+        */
+
+        function createHtmlWithCreateElement (todos, targetEl) {
+            targetEl.innerHTML = ''
+
+            for (var i = 0; i < todos.length; i++) {
+                var todo = todos[i];
+
+                // Prepare elements
+                var inputEl = document.createElement('input');
+                inputEl.classList.add('toggle');
+                inputEl.type = 'checkbox';
+                inputEl.checked = todo.completed;
+
+                var labelEl = document.createElement('label');
+                labelEl.innerHTML = todo.text;
+
+                var buttonEl = document.createElement('button');
+                buttonEl.classList.add('destroy');
+
+                // Append these elements to the todo wrapper element
+                var todoEl = document.createElement('li');
+                todoEl.appendChild(inputEl);
+                todoEl.appendChild(labelEl);
+                todoEl.appendChild(buttonEl);
+
+                // Append todo to the page
+                targetEl.appendChild(todoEl);
+            }
+        }
+
+        function createHtmlWithStrings (todos, targetEl) {
+            targetEl.innerHTML = ''
+
+            for (var i = 0; i < todos.length; i++) {
+                var todo = todos[i];
+
+                var html =
+                    '<li>' +
+                    '  <input class="toggle" type="checkbox" ' + (todo.completed ? 'checked' : '')  + '>' +
+                    '  <label>' + todo.text + '</label>' +
+                    '  <button class="destroy"></button>' +
+                    '</li>';
+
+                targetEl.insertAdjacentHTML('beforeend', html);
+            }
+        }
+
+        //
+        // Append todos html into the page
+        //
+
+        var todoListEl = document.querySelector('.todo-list')
+        // createHtmlWithCreateElement(state.todos, todoListEl);
+        createHtmlWithStrings(state.todos, todoListEl);
+
+        //
+        // Handle main input
+        //
+
+        // TODO
+
+        //
+        // Prototype expansion
+        //
+
+        // Add method on Object prototype. This method will modify the object
+        // and add current timestamp to it. All created objects inherit from
+        // Object prototype and will have this method.
+        Object.prototype.addTimestamp = function () {
+            this.timestamp = Date.now();
+        }
+        // You should generally avoid modifying prototypes of basic JavaScript
+        // objects, see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
+        // But it can be sometimes useful, for example, if we want to polyfill
+        // some language feature to older browsers.
+
+        //
+        // Handle filters
+        //
+
+        var filters = {
+            all: document.querySelector('#filter-all'),
+            active: document.querySelector('#filter-active'),
+            completed: document.querySelector('#filter-completed')
+        };
+
+        function filtersClick(newFilterType){
+            for (var filterName in filters){
+                if (filters.hasOwnProperty(filterName)){
+                var filter = filters[filterName];
+                filter.classList.remove('selected');
+                }
+            }
+
+            filters[newFilterType].classList.add('selected');
+
+            state1.setFilter(newFilterType);
+            createHtmlWithStrings(state1.getTodos(), todoListEl);
+            
+            
+        }
+
+
+        for (var filterName in filters) {
+            //get rid of dedicnost from default object line 133 -- addTimestamp
+            if (filters.hasOwnProperty(filterName)){
+                var filterElement = filters[filterName];
+
+                (function(capturedFilterName){
+                //udalost, -- params addeventlistener
+                filterElement.addEventListener('click', function(e){
+                    filtersClick(capturedFilterName);
+                });
+                })(filterName);
+            }
+            
+        }
+
+    </script>
+
+</body>
+</html>
